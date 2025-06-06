@@ -1,0 +1,5 @@
+IsCondition function
+EvaluateCondition function
+ExecuteFunction function which executes a function once the arguments are coherent (types, amount...), has to handle ReturnT from Function structure
+Update on the tokeniser so $end has no need to use bracket
+FilterAwaitedExecution which filters which function is executed (if, classic, while...)
