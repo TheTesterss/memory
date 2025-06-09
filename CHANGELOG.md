@@ -1,3 +1,14 @@
+2025-06-09
+V0.3.0
++ Concluded with $print
++ Renforced with the types importance in the arguments collector function.
++ Split the functions execution part to another file instead of the main one.
+&&&&&&
+2025-06-08
+V0.2.5
++ Added condition before executing function.
++ Added documentation to structures.
+&&&&&&
 2025-06-06
 V0.2.0
 + Added $print function not handled for now

@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"memory/src/func"
-	"memory/src/args"
 	"memory/src/core"
+	"memory/src/func"
 	"os"
 )
 
@@ -18,28 +17,8 @@ func main() {
 	result := core.Tokenise(string(content));
 	var functions []core.Function = []core.Function{}
 	for _, element := range result {
-		functions = append(functions, instancyFunction(element))
+		functions = append(functions, IDENT.InstancyFunction(element))
 	}
 
-	fmt.Println(functions)
-
-}
-
-func instancyFunction(item core.Item) core.Function {
-	var args []core.Arg = args.Split(item)
-	var correctedSub core.Function
-
-	if item.SubFunction != nil {
-		correctedSub = instancyFunction(*item.SubFunction)
-	}
-
-	var availableFunctions map[string]core.Function = IDENT.GetAvailableFunctions()
-
-	return core.Function{
-		Name: item.Name,
-		Args: args,
-		ArgsCount: float32(len(args)),
-		SubFunction: &correctedSub,
-		Execute: availableFunctions[item.Name].Execute,
-	}
+	IDENT.ExecuteFunctions(functions, result)
 }

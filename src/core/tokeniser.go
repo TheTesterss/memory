@@ -18,12 +18,12 @@ var l []string = []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a",
 // line is the line where the function has been called.
 // subItems is a list of every Items found in the argument.
 type Item struct {
-	Name        string
-	Listed_args string
-	Opened      bool
-	Closed      bool
-	Line        int32
-	SubFunction *Item
+	Name        string // The name gave to the item.
+	Listed_args string // A string of every arguments (before getting retrieved by SplitArgs function).
+	Opened      bool   // Is the function opened? (does not count for $end).
+	Closed      bool   // Is the function closed? (does not count for $end).
+	Line        int32  // At which line has the item been found.
+	SubFunction *Item  // If Item is a class, what's the method used to accompaign the current item.
 }
 
 func Tokenise(t string) []Item {

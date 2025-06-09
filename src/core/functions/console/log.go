@@ -22,6 +22,7 @@ func Print_D() core.Function {
 
 func Print(f *core.Function) any {
 	for _, arg := range f.Args {
+		fmt.Println(arg)
 		fmt.Println(arg.Value);
 	}
 	return nil;
