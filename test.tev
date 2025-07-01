@@ -1,4 +1,9 @@
-print[1==1;"test";3434]
-setVar["a";12;"int"]
-print[a==12&&(1>2
-||1>1)]
+setVar["a";1;"int"]
+setVar["b";0;"int"]
+if[a>b]
+    print["A supérieur à B"]
+elseif[a<b]
+    print["A inférieur à B"]
+else[]
+    print["A équivalent à B"]
+end[]

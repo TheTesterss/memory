@@ -114,12 +114,11 @@ func Split(f types.Item) []types.Arg {
 	v := &r[len(r)-1]
 	v.Value = strings.TrimSpace(v.Value)
 	if !isBalancedParentheses(v.Value) {
-    for strings.HasSuffix(v.Value, ")") && !strings.HasPrefix(v.Value, "\"") {
-        v.Value = strings.TrimSuffix(v.Value, ")")
-        v.Value = strings.TrimSpace(v.Value)
-    }
-}
-	fmt.Print(v)
+    	for strings.HasSuffix(v.Value, ")") && !strings.HasPrefix(v.Value, "\"") {
+        	v.Value = strings.TrimSuffix(v.Value, ")")
+        	v.Value = strings.TrimSpace(v.Value)
+    	}
+	}
 	if v.Value == "" {
 	    r = r[:len(r)-1]
     	return r

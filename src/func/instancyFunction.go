@@ -24,9 +24,6 @@ func InstancyFunction(item types.Item) types.Function {
 	}
 
 	var availableFunctions map[string]types.Function = maps.GetAvailableFunctions()
-
-	fmt.Printf("DEBUG: item.Name='%s' at line %d\n", item.Name, item.Line)
-	fmt.Printf("DEBUG: Available functions: %v\n", registry.GetAvailableFunctionsNames())
 	if !Contains(item.Name, registry.GetAvailableFunctionsNames()) {
 		fmt.Printf("[73402] - At line %d - %s is not valid.\n", item.Line, item.Name)
 		os.Exit(1)

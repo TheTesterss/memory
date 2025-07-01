@@ -3,6 +3,10 @@ package registry
 var FunctionNames []string = []string{
 	"print",
 	"setVar",
+	"if",
+	"end",
+	"elseif",
+	"else",
 }
 
 var VariableNames []string = []string{}

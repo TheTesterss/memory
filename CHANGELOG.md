@@ -1,4 +1,9 @@
 2025-07-01
+V0.6.0
++ Added if, else, endif, elseif
++ Fixed variables
+&&&&&&
+2025-07-01
 V0.5.0
 + Concluded with locales variables
 + Concluded with reassignement

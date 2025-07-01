@@ -37,10 +37,10 @@ func SetVar(f *types.Function) any {
 	name := f.Args[0]
 	value := f.Args[1]
 	t := f.Args[2]
-	//if Contains(name.Value, names.GetAvailableFunctionsNames()) {
-	//	fmt.Printf("[73402] - A function already exist with this name: %s.\n", name.Value)
-	//	os.Exit(1)
-	//}
+	if util.Contains(name.Value, registry.GetAvailableFunctionsNames()) {
+		fmt.Printf("[73402] - A function already exist with this name: %s.\n", name.Value)
+		os.Exit(1)
+	}
 	if !util.Contains(name.Value, registry.GetAvailableVariablesNames()) {
 		if(!util.Contains(t.Value, []string{"any", "bool", "nil", "int", "str"})) {
 			fmt.Printf("[73402] - %s, the types is not correct: %s.\n", name.Value, t.Value)

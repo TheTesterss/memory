@@ -84,20 +84,14 @@ func Tokenise(t string) []types.Item {
             current += "$"
 
         case ">":
-            // Only treat as subFunction indicator if depth == 0 and preceded by '-'
-            if depth == 0 {
-                if i == 0 || string(t[i-1]) != "-" {
-                    fmt.Printf("[73402] - At line %d - The superiority sign can only be used if preceded by an -.\n", line)
-                    os.Exit(1)
-                }
-                if len(items) == 0 {
-                    fmt.Printf("[73402] - At line %d - Can't match the next function with a previous one.\n", line)
-                    os.Exit(1)
-                }
-                pointed_depth++
-                current = ""
-            } else {
-                // Inside brackets, treat '>' as a normal character
+            if depth == 0 && i > 0 && string(t[i-1]) == "-" {
+        		if len(items) == 0 {
+        		    fmt.Printf("[73402] - At line %d - Can't match the next function with a previous one.\n", line)
+        		    os.Exit(1)
+        		}
+        		pointed_depth++
+        		current = ""
+    		} else {
                 current += ">"
             }
 
