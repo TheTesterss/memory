@@ -1,3 +1,9 @@
+2025-07-01
+V0.5.0
++ Concluded with locales variables
++ Concluded with reassignement
++ Concluded with types (int, str, bool, any, nil, conditions...)
+&&&&&&
 2025-06-09
 V0.3.0
 + Concluded with $print
