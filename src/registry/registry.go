@@ -1,8 +1,8 @@
 package registry
 
 var FunctionNames []string = []string{
-	"$print",
-	"$setVar",
+	"print",
+	"setVar",
 }
 
 var VariableNames []string = []string{}

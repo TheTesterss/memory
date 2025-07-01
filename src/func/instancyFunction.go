@@ -3,13 +3,19 @@ package IDENT
 import (
 	"fmt"
 	"memory/src/args"
-	"memory/src/types"
-	"os"
 	"memory/src/maps"
 	"memory/src/registry"
+	"memory/src/types"
+	"os"
+	"strings"
 )
 
 func InstancyFunction(item types.Item) types.Function {
+	item.Name = strings.TrimSpace(item.Name)
+	if item.Name == "" {
+        fmt.Printf("[73402] - At line %d - Empty function name, skipping.\n", item.Line)
+        os.Exit(1)
+    }
 	var args []types.Arg = args.Split(item)
 	var correctedSub types.Function
 
@@ -19,6 +25,8 @@ func InstancyFunction(item types.Item) types.Function {
 
 	var availableFunctions map[string]types.Function = maps.GetAvailableFunctions()
 
+	fmt.Printf("DEBUG: item.Name='%s' at line %d\n", item.Name, item.Line)
+	fmt.Printf("DEBUG: Available functions: %v\n", registry.GetAvailableFunctionsNames())
 	if !Contains(item.Name, registry.GetAvailableFunctionsNames()) {
 		fmt.Printf("[73402] - At line %d - %s is not valid.\n", item.Line, item.Name)
 		os.Exit(1)

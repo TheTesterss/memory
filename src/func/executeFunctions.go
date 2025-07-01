@@ -11,9 +11,11 @@ import (
 var functions_D map[string]types.Function = maps.GetAvailableFunctions()
 var _ []string = registry.GetAvailableFunctionsNames()
 
-func ExecuteFunctions(functions []types.Function, items []types.Item) {
-	for i, element := range functions {
-		ExecuteFunction(i, element, items)
+func ExecuteFunctions(items []types.Item) {
+	for i, element := range items {
+		if element.Name != "" {
+			ExecuteFunction(i, InstancyFunction(element), items)
+		}
 	}
 }
 

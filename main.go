@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"memory/src/types"
 	"memory/src/func"
 	"memory/src/core"
 	"os"
@@ -16,10 +15,5 @@ func main() {
 	}
 
 	result := core.Tokenise(string(content));
-	var functions []types.Function = []types.Function{}
-	for _, element := range result {
-		functions = append(functions, IDENT.InstancyFunction(element))
-	}
-
-	IDENT.ExecuteFunctions(functions, result)
+	IDENT.ExecuteFunctions(result)
 }

@@ -7,8 +7,8 @@ import (
 )
 
 var functions map[string]types.Function = map[string]types.Function{
-	"$print": console.Print_D(),
-	"$setVar": locales.SetVar_D(),
+	"print": console.Print_D(),
+	"setVar": locales.SetVar_D(),
 }
 
 func GetAvailableFunctions() map[string]types.Function {

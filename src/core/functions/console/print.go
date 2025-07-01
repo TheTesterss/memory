@@ -7,7 +7,7 @@ import (
 
 func Print_D() types.Function {
 	return types.Function{
-		Name:    "$print",
+		Name:    "print",
 		ReturnT: "nil",
 		ArgsCount: -1,
 		Args: []types.Arg{

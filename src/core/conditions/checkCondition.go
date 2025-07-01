@@ -47,8 +47,8 @@ func CheckCondition(condition string) bool {
         os.Exit(1)
     }
 
-    leftVal := ResolveValue(left)
-    rightVal := ResolveValue(right)
+    leftVal, _ := ResolveValue(left)
+    rightVal, _ := ResolveValue(right)
 
     leftNum, leftErr := strconv.ParseFloat(leftVal, 64)
     rightNum, rightErr := strconv.ParseFloat(rightVal, 64)
@@ -116,23 +116,23 @@ func CheckCondition(condition string) bool {
     return false
 }
 
-func ResolveValue(side string) string {
+func ResolveValue(side string) (string, string) {
 	side = strings.TrimSpace(side)
 
 	if Contains(side, registry.GetAvailableFunctionsNames()) {
 		function_D := maps.GetAvailableFunctions()[side]
 		result := function_D.Execute(&function_D)
-		if str, isString := result.(string); isString {
-			return str
+		if val, isString := result.(string); isString {
+			return val, function_D.ReturnT
 		} else {
-			return ""
+			return "", "any"
 		}
 	} else if Contains(side, registry.GetAvailableVariablesNames()) {
 		variable := vars.GetAvailableVariables()[side]
-		return variable.Value
+		return variable.Value, variable.T
 	}
 
-	return side
+	return side, ""
 }
 
 func Contains(t string, l []string) bool {

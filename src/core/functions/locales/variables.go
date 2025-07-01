@@ -12,7 +12,7 @@ import (
 
 func SetVar_D() types.Function {
 	return types.Function{
-		Name:    "$setVar",
+		Name:    "setVar",
 		ReturnT: "nil",
 		ArgsCount: 2,
 		Args: []types.Arg{
@@ -50,7 +50,6 @@ func SetVar(f *types.Function) any {
 			t.Value = "any"
 		}
 		vars.SetAvailableVariables(&types.Variable{ Name: name.Value, T: t.Value, Value: value.Value }, false)
-		fmt.Println(vars.GetAvailableVariables(), "created")
 	} else { // Already declared.
 		t.Value = vars.GetAvailableVariables()[name.Value].T
 		if (t.Value == "bool" && !util.IsBoolean(value.Value)) ||
@@ -63,7 +62,6 @@ func SetVar(f *types.Function) any {
 		}
 
 		vars.SetAvailableVariables(&types.Variable{ Name: name.Value, T: t.Value, Value: value.Value }, true)
-		fmt.Println(vars.GetAvailableVariables(), "updated")
 	}
 	return nil
 }

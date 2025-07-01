@@ -6,6 +6,7 @@ import (
 	"memory/src/types"
 	"memory/src/util"
 	"os"
+	"strings"
 )
 
 func Split(f types.Item) []types.Arg {
@@ -48,7 +49,18 @@ func Split(f types.Item) []types.Arg {
 				arg.Value+=";"
 			}
 			v := &r[len(r)-1]
-			v.Value = conditions.ResolveValue(v.Value)
+			v.Value = strings.TrimSpace(v.Value)
+			if !isBalancedParentheses(v.Value) {
+    			for strings.HasSuffix(v.Value, ")") && !strings.HasPrefix(v.Value, "\"") {
+        			v.Value = strings.TrimSuffix(v.Value, ")")
+        			v.Value = strings.TrimSpace(v.Value)
+    			}
+			}
+			value, t := conditions.ResolveValue(v.Value)
+			v.Value = value
+			if t != "" {
+				v.T = t
+			}
 			if util.IsNumber(v.Value) {
 				if v.T == "str" { // Can't use two types for a single argument.
 					fmt.Printf("[73402] - At line %d - %s can't be both string and int.\n", f.Line, v.Value)
@@ -81,7 +93,9 @@ func Split(f types.Item) []types.Arg {
 				os.Exit(1)
 			}
 
-			r = append(r, types.Arg{})
+			if i != len(f.Listed_args)-1 {
+    			r = append(r, types.Arg{})
+			}
 			canOpenString = true
 			inString = false
 
@@ -90,38 +104,76 @@ func Split(f types.Item) []types.Arg {
 			arg.Value+=string(char)
 		}
 	}
-	v := &r[len(r)-1]
-	v.Value = conditions.ResolveValue(v.Value)
-	if util.IsNumber(v.Value) {
-		if v.T == "str" { // Can't use two types for a single argument.
-			fmt.Printf("[73402] - At line %d - %s can't be both string and int.\n", f.Line, v.Value)
-			os.Exit(1)
-		}
-		v.T = "int" // The value is an integer or a float.
-	} else if v.Value == "nil" {
-		if v.T == "str" { // Can't use two types for a single argument.
-			fmt.Printf("[73402] - At line %d - %s can't be both string and nil.\n", f.Line, v.Value)
-			os.Exit(1)
-		}
-		v.T = "nil" // The value is nil without "" that means the nil type is just simply called.
-	} else if util.IsBoolean(v.Value) {
-		if v.T == "str" { // Can't use two types for a single argument.
-			fmt.Printf("[73402] - At line %d - %s can't be both string and bool.\n", f.Line, v.Value)
-			os.Exit(1)
-		}
-		v.T = "bool" // The value is true/false.
-	} else if conditions.IsCondition(v.Value) {
-		result := conditions.EvaluateConditions(v.Value)
-		v.Value = fmt.Sprintf("%v", result) // Changes the value by true/false
-		v.T = "bool"
+	for len(r) > 0 && strings.TrimSpace(r[len(r)-1].Value) == "" {
+    	r = r[:len(r)-1]
 	}
-	if v.T == "str" && inString {
-		fmt.Printf("[73402] - At line %d - %s is an opened string but never closed.\n", f.Line, v.Value)
-		os.Exit(1)
+	if len(r) == 0 {
+	    return r
+	}
+
+	v := &r[len(r)-1]
+	v.Value = strings.TrimSpace(v.Value)
+	if !isBalancedParentheses(v.Value) {
+    for strings.HasSuffix(v.Value, ")") && !strings.HasPrefix(v.Value, "\"") {
+        v.Value = strings.TrimSuffix(v.Value, ")")
+        v.Value = strings.TrimSpace(v.Value)
+    }
+}
+	fmt.Print(v)
+	if v.Value == "" {
+	    r = r[:len(r)-1]
+    	return r
+	}
+	value, t := conditions.ResolveValue(v.Value)
+	v.Value = value
+	if t != "" {
+	    v.T = t
+	}
+	if util.IsNumber(v.Value) {
+	    if v.T == "str" {
+	        fmt.Printf("[73402] - At line %d - %s can't be both string and int.\n", f.Line, v.Value)
+	        os.Exit(1)
+	    }
+	    v.T = "int"
+	} else if v.Value == "nil" {
+	    if v.T == "str" {
+	        fmt.Printf("[73402] - At line %d - %s can't be both string and nil.\n", f.Line, v.Value)
+	        os.Exit(1)
+	    }
+	    v.T = "nil"
+	} else if util.IsBoolean(v.Value) {
+	    if v.T == "str" {
+	        fmt.Printf("[73402] - At line %d - %s can't be both string and bool.\n", f.Line, v.Value)
+	        os.Exit(1)
+	    }
+	    v.T = "bool"
+	} else if conditions.IsCondition(v.Value) {
+	    result := conditions.EvaluateConditions(v.Value)
+	    v.Value = fmt.Sprintf("%v", result)
+	    v.T = "bool"
+	}
+		if v.T == "str" && inString {
+	    fmt.Printf("[73402] - At line %d - %s is an opened string but never closed.\n", f.Line, v.Value)
+	    os.Exit(1)
 	}
 	if v.T == "" {
-		fmt.Printf("[73402] - At line %d - %s is not accorded to any working type (int/nil/bool/str).\n", f.Line, v.Value)
-		os.Exit(1)
+	    fmt.Printf("[73402] - At line %d - %s is not accorded to any working type (int/nil/bool/str).\n", f.Line, v.Value)
+	    os.Exit(1)
 	}
 	return r
+}
+
+func isBalancedParentheses(s string) bool {
+    count := 0
+    for _, c := range s {
+        if c == '(' {
+            count++
+        } else if c == ')' {
+            count--
+            if count < 0 {
+                return false
+            }
+        }
+    }
+    return count == 0
 }
