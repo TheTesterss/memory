@@ -1,5 +1,0 @@
-[TODO] IsCondition function
-[TODO] EvaluateCondition function
-[TODO] Update on the tokeniser so $end has no need to use bracket
-[TODO] FilterAwaitedExecution which filters which function is executed (if, classic, while...)
-[TODO] Handle the ReturnT value as an argument for now but for the class next.

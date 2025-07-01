@@ -1,0 +1,3 @@
+$print[1==1;"test";3434]
+$setVar["a";12;"int"]
+$print[$a]

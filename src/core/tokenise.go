@@ -4,31 +4,15 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"memory/src/types"
 )
 
 var l []string = []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 
-// The function has for goal to return a structured version of every found functions.
-// If you use a $if[1==1] it should return { name: "$if", full_version: "$if[1==1]", args: [1==1], opened: true, closed: true, line: 0, subFunction: nil }
-//
-// name is how the function is called.
-// full_version includes the function name + the given arguments (with brackets).
-// args is a list of every arguments following the argument structure.
-// opened and closed are there to show if its a variable or not (both true/false).
-// line is the line where the function has been called.
-// subItems is a list of every Items found in the argument.
-type Item struct {
-	Name        string // The name gave to the item.
-	Listed_args string // A string of every arguments (before getting retrieved by SplitArgs function).
-	Opened      bool   // Is the function opened? (does not count for $end).
-	Closed      bool   // Is the function closed? (does not count for $end).
-	Line        int32  // At which line has the item been found.
-	SubFunction *Item  // If Item is a class, what's the method used to accompaign the current item.
-}
 
-func Tokenise(t string) []Item {
+func Tokenise(t string) []types.Item {
 	var line int32 = 0
-	var items []Item = []Item{}
+	var items []types.Item = []types.Item{}
 	var current string = ""
 	var depth int8 = 0
 	var pointed_depth int8 = 0
@@ -49,7 +33,7 @@ func Tokenise(t string) []Item {
 			t := &items[len(items)-1]
 			for range pointed_depth {
 				if t.SubFunction == nil {
-					t.SubFunction = &Item{}
+					t.SubFunction = &types.Item{}
 				}
 				t = t.SubFunction
 			}
@@ -64,7 +48,7 @@ func Tokenise(t string) []Item {
 				current += "["
 				continue
 			}
-			item := Item{
+			item := types.Item{
 				Name:        current,
 				Listed_args: "",
 				Opened:      true,
@@ -76,7 +60,7 @@ func Tokenise(t string) []Item {
 				t := &items[len(items)-1]
 				for range pointed_depth {
 					if t.SubFunction == nil {
-						t.SubFunction = &Item{}
+						t.SubFunction = &types.Item{}
 					}
 					t = t.SubFunction
 				}

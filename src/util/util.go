@@ -1,6 +1,5 @@
 package util
 
-import "memory/src/core/conditions"
 
 // Verify if a char is a digit
 func IsDigit(v string) bool {
@@ -34,5 +33,14 @@ func IsBoolean(v string) bool {
 	if v == "true" || v == "false" {
 		return true
 	}
-	return conditions.IsCondition(v)
+	return false
+}
+
+func Contains(t string, l []string) bool {
+	for i := range l {
+		if l[i] == t {
+			return true
+		}
+	}
+	return false
 }

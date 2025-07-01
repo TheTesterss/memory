@@ -2,16 +2,17 @@ package args
 
 import (
 	"fmt"
-	"memory/src/core"
+	"memory/src/core/conditions"
+	"memory/src/types"
 	"memory/src/util"
 	"os"
 )
 
-func Split(f core.Item) []core.Arg {
+func Split(f types.Item) []types.Arg {
 	if f.Listed_args == "" {
-		return []core.Arg{}
+		return []types.Arg{}
 	}
-	var r []core.Arg = []core.Arg{
+	var r []types.Arg = []types.Arg{
 		{T: "", Value: ""},
 	}
 	var inString bool = false
@@ -47,24 +48,29 @@ func Split(f core.Item) []core.Arg {
 				arg.Value+=";"
 			}
 			v := &r[len(r)-1]
+			v.Value = conditions.ResolveValue(v.Value)
 			if util.IsNumber(v.Value) {
 				if v.T == "str" { // Can't use two types for a single argument.
 					fmt.Printf("[73402] - At line %d - %s can't be both string and int.\n", f.Line, v.Value)
 					os.Exit(1)
 				}
 				v.T = "int" // The value is an integer or a float.
-			} else if util.IsBoolean(v.Value) {
-				if v.T == "str" { // Can't use two types for a single argument.
-					fmt.Printf("[73402] - At line %d - %s can't be both string and bool.\n", f.Line, v.Value)
-					os.Exit(1)
-				}
-				v.T = "bool" // The value is true/false or the argument is a linear condition which returns true/false.
 			} else if v.Value == "nil" {
 				if v.T == "str" { // Can't use two types for a single argument.
 					fmt.Printf("[73402] - At line %d - %s can't be both string and nil.\n", f.Line, v.Value)
 					os.Exit(1)
 				}
 				v.T = "nil" // The value is nil without "" that means the nil type is just simply called.
+			} else if util.IsBoolean(v.Value) {
+				if v.T == "str" { // Can't use two types for a single argument.
+					fmt.Printf("[73402] - At line %d - %s can't be both string and bool.\n", f.Line, v.Value)
+					os.Exit(1)
+				}
+				v.T = "bool" // The value is true/false.
+			} else if conditions.IsCondition(v.Value) {
+				result := conditions.EvaluateConditions(v.Value)
+				v.Value = fmt.Sprintf("%v", result) // Changes the value by true/false
+				v.T = "bool"
 			}
 			if v.T == "str" && inString { // Never closed the string.
 				fmt.Printf("[73402] - At line %d - %s is an opened string but never closed.\n", f.Line, v.Value)
@@ -75,7 +81,7 @@ func Split(f core.Item) []core.Arg {
 				os.Exit(1)
 			}
 
-			r = append(r, core.Arg{})
+			r = append(r, types.Arg{})
 			canOpenString = true
 			inString = false
 
@@ -85,24 +91,29 @@ func Split(f core.Item) []core.Arg {
 		}
 	}
 	v := &r[len(r)-1]
+	v.Value = conditions.ResolveValue(v.Value)
 	if util.IsNumber(v.Value) {
 		if v.T == "str" { // Can't use two types for a single argument.
 			fmt.Printf("[73402] - At line %d - %s can't be both string and int.\n", f.Line, v.Value)
 			os.Exit(1)
 		}
 		v.T = "int" // The value is an integer or a float.
-	} else if util.IsBoolean(v.Value) {
-		if v.T == "str" { // Can't use two types for a single argument.
-			fmt.Printf("[73402] - At line %d - %s can't be both string and bool.\n", f.Line, v.Value)
-			os.Exit(1)
-		}
-		v.T = "bool" // The value is true/false or the argument is a linear condition which returns true/false.
 	} else if v.Value == "nil" {
 		if v.T == "str" { // Can't use two types for a single argument.
 			fmt.Printf("[73402] - At line %d - %s can't be both string and nil.\n", f.Line, v.Value)
 			os.Exit(1)
 		}
 		v.T = "nil" // The value is nil without "" that means the nil type is just simply called.
+	} else if util.IsBoolean(v.Value) {
+		if v.T == "str" { // Can't use two types for a single argument.
+			fmt.Printf("[73402] - At line %d - %s can't be both string and bool.\n", f.Line, v.Value)
+			os.Exit(1)
+		}
+		v.T = "bool" // The value is true/false.
+	} else if conditions.IsCondition(v.Value) {
+		result := conditions.EvaluateConditions(v.Value)
+		v.Value = fmt.Sprintf("%v", result) // Changes the value by true/false
+		v.T = "bool"
 	}
 	if v.T == "str" && inString {
 		fmt.Printf("[73402] - At line %d - %s is an opened string but never closed.\n", f.Line, v.Value)

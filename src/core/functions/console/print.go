@@ -2,15 +2,15 @@ package console
 
 import (
 	"fmt"
-	"memory/src/core"
+	"memory/src/types"
 )
 
-func Print_D() core.Function {
-	return core.Function{
+func Print_D() types.Function {
+	return types.Function{
 		Name:    "$print",
 		ReturnT: "nil",
 		ArgsCount: -1,
-		Args: []core.Arg{
+		Args: []types.Arg{
 			{
 				Name: "content",
 				T:    "any",
@@ -20,10 +20,9 @@ func Print_D() core.Function {
 	}
 }
 
-func Print(f *core.Function) any {
+func Print(f *types.Function) any {
 	for _, arg := range f.Args {
-		fmt.Println(arg)
 		fmt.Println(arg.Value);
 	}
-	return nil;
+	return nil
 }
