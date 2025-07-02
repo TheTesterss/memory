@@ -1,9 +1,10 @@
 package conditions
 
 import (
-    "fmt"
-    "regexp"
-    "strings"
+	"fmt"
+	"memory/src/core/resolvers"
+	"regexp"
+	"strings"
 )
 
 func IsCondition(expression string) bool {
@@ -11,6 +12,7 @@ func IsCondition(expression string) bool {
     if expression == "" {
         return false
     }
+    expression = resolvers.ResolveCalculsInCondition(expression)
 
     count := 0
     for _, c := range expression {

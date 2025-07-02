@@ -2,12 +2,11 @@ package conditions
 
 import (
 	"fmt"
-	"memory/src/maps"
-	"memory/src/registry"
-	"memory/src/vars"
+	"memory/src/core/resolvers"
 	"os"
 	"strconv"
 	"strings"
+    "memory/src/util"
 )
 
 func CheckCondition(condition string) bool {
@@ -47,8 +46,16 @@ func CheckCondition(condition string) bool {
         os.Exit(1)
     }
 
-    leftVal, _ := ResolveValue(left)
-    rightVal, _ := ResolveValue(right)
+    leftVal, _ := resolvers.ResolveValue(left)
+    leftVal = resolvers.ReplaceVariablesInExpr(leftVal)
+    if util.LooksLikeCalcul(leftVal) || util.IsNumber(leftVal) {
+        leftVal = resolvers.ResolveCalculs(leftVal)
+    }
+    rightVal, _ := resolvers.ResolveValue(right)
+    rightVal = resolvers.ReplaceVariablesInExpr(rightVal)
+    if util.LooksLikeCalcul(rightVal) || util.IsNumber(rightVal) {
+        rightVal = resolvers.ResolveCalculs(rightVal)
+    }
 
     leftNum, leftErr := strconv.ParseFloat(leftVal, 64)
     rightNum, rightErr := strconv.ParseFloat(rightVal, 64)
@@ -114,32 +121,4 @@ func CheckCondition(condition string) bool {
     fmt.Printf("[73402] - Type mismatch or unsupported types in: '%s'\n", condition)
     os.Exit(1)
     return false
-}
-
-func ResolveValue(side string) (string, string) {
-	side = strings.TrimSpace(side)
-
-	if Contains(side, registry.GetAvailableFunctionsNames()) {
-		function_D := maps.GetAvailableFunctions()[side]
-		result := function_D.Execute(&function_D)
-		if val, isString := result.(string); isString {
-			return val, function_D.ReturnT
-		} else {
-			return "", "any"
-		}
-	} else if Contains(side, registry.GetAvailableVariablesNames()) {
-		variable := vars.GetAvailableVariables()[side]
-		return variable.Value, variable.T
-	}
-
-	return side, ""
-}
-
-func Contains(t string, l []string) bool {
-	for i := range l {
-		if l[i] == t {
-			return true
-		}
-	}
-	return false
 }

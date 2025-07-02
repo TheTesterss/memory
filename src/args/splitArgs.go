@@ -3,6 +3,7 @@ package args
 import (
 	"fmt"
 	"memory/src/core/conditions"
+	"memory/src/core/resolvers"
 	"memory/src/types"
 	"memory/src/util"
 	"os"
@@ -17,31 +18,39 @@ func Split(f types.Item) []types.Arg {
 		{T: "", Value: ""},
 	}
 	var inString bool = false
-	var canOpenString bool = true
 
 	for i, char := range f.Listed_args {
 
 		switch string(char) {
 
 		case "\"":
-			arg := &r[len(r)-1]
-			if i > 0 && string(f.Listed_args[i-1]) == "\\" {
-				arg.Value+="\""
-				continue
-			}
-			if !canOpenString && !inString {
-				fmt.Printf("[73402] - At line %d - Couldn't open a string twice in the same argument.\n", f.Line)
-				os.Exit(1)
-			}
-			inString = !inString
-			if !inString && len(f.Listed_args)-1 > i && string(f.Listed_args[i+1]) != ";" {
-				fmt.Printf("[73402] - At line %d - Closing a string but not the argument.\n", f.Line)
-				os.Exit(1)
-			}
-			canOpenString = false
-			if inString {
-				arg.T = "str"
-			}
+    		arg := &r[len(r)-1]
+    		if i > 0 && string(f.Listed_args[i-1]) == "\\" {
+    		    arg.Value += "\""
+    		    continue
+    		}
+    		inString = !inString
+    		if !inString {
+    		    isLast := i == len(f.Listed_args)-1
+    		    if !isLast {
+    				next := string(f.Listed_args[i+1])
+    				next2 := ""
+    				if i+2 < len(f.Listed_args) {
+        				next2 = string(f.Listed_args[i+1 : i+3])
+    				}
+    				allowed := next == ";" || next == "]" ||
+        			next2 == "==" || next2 == "!=" || next2 == ">=" || next2 == "<=" ||
+        			next == ">" || next == "<" ||
+        			next2 == "&&" || next2 == "||"
+    				if !allowed {
+        				fmt.Printf("[73402] - At line %d - Closing a string but not the argument.\n", f.Line)
+        				os.Exit(1)
+    				}
+				}
+    		}
+    		if inString {
+        		arg.T = "str"
+    		}
 
 		case ";":
 			if inString {
@@ -56,39 +65,39 @@ func Split(f types.Item) []types.Arg {
         			v.Value = strings.TrimSpace(v.Value)
     			}
 			}
-			value, t := conditions.ResolveValue(v.Value)
+			value, t := resolvers.ResolveValue(v.Value)
 			v.Value = value
 			if t != "" {
-				v.T = t
+			    v.T = t
 			}
-			if util.IsNumber(v.Value) {
-				if v.T == "str" { // Can't use two types for a single argument.
-					fmt.Printf("[73402] - At line %d - %s can't be both string and int.\n", f.Line, v.Value)
-					os.Exit(1)
-				}
-				v.T = "int" // The value is an integer or a float.
-			} else if v.Value == "nil" {
-				if v.T == "str" { // Can't use two types for a single argument.
-					fmt.Printf("[73402] - At line %d - %s can't be both string and nil.\n", f.Line, v.Value)
-					os.Exit(1)
-				}
-				v.T = "nil" // The value is nil without "" that means the nil type is just simply called.
-			} else if util.IsBoolean(v.Value) {
-				if v.T == "str" { // Can't use two types for a single argument.
-					fmt.Printf("[73402] - At line %d - %s can't be both string and bool.\n", f.Line, v.Value)
-					os.Exit(1)
-				}
-				v.T = "bool" // The value is true/false.
-			} else if conditions.IsCondition(v.Value) {
-				result := conditions.EvaluateConditions(v.Value)
-				v.Value = fmt.Sprintf("%v", result) // Changes the value by true/false
-				v.T = "bool"
+
+			if v.T != "str" && !inString {
+	    		v.Value = strings.TrimSpace(v.Value)
+	    		v.Value = resolvers.ReplaceVariablesInExpr(v.Value)
+
+ 	   			if conditions.IsCondition(v.Value) {
+	    	    	result := conditions.EvaluateConditions(v.Value)
+	    		    v.Value = fmt.Sprintf("%v", result)
+	    		    v.T = "bool"
+ 	    		} else if util.LooksLikeCalcul(v.Value) {
+ 	    		    v.Value = resolvers.ResolveCalculs(v.Value)
+ 	    		    v.T = "int"
+ 	    		} else if util.IsNumber(v.Value) {
+ 	    		    v.T = "int"
+ 	    		} else if v.Value == "nil" {
+        			v.T = "nil"
+    			} else if util.IsBoolean(v.Value) {
+    			    v.T = "bool"
+    			}
 			}
-			if v.T == "str" && inString { // Never closed the string.
-				fmt.Printf("[73402] - At line %d - %s is an opened string but never closed.\n", f.Line, v.Value)
-				os.Exit(1)
+			if v.T == "str" {
+    			v.Value = conditions.ReplaceBracedVariablesInString(v.Value)
+    			if inString {
+        			fmt.Printf("[73402] - At line %d - %s is an opened string but never closed.\n", f.Line, v.Value)
+        			os.Exit(1)
+    			}
 			}
-			if v.T == "" { // No accorded type which means its not valid.
+			if v.T == "" {
 				fmt.Printf("[73402] - At line %d - %s is not accorded to any working type (int/nil/bool/str).\n", f.Line, v.Value)
 				os.Exit(1)
 			}
@@ -96,7 +105,6 @@ func Split(f types.Item) []types.Arg {
 			if i != len(f.Listed_args)-1 {
     			r = append(r, types.Arg{})
 			}
-			canOpenString = true
 			inString = false
 
 		default:
@@ -123,37 +131,37 @@ func Split(f types.Item) []types.Arg {
 	    r = r[:len(r)-1]
     	return r
 	}
-	value, t := conditions.ResolveValue(v.Value)
+	value, t := resolvers.ResolveValue(v.Value)
 	v.Value = value
 	if t != "" {
 	    v.T = t
 	}
-	if util.IsNumber(v.Value) {
-	    if v.T == "str" {
-	        fmt.Printf("[73402] - At line %d - %s can't be both string and int.\n", f.Line, v.Value)
-	        os.Exit(1)
-	    }
-	    v.T = "int"
-	} else if v.Value == "nil" {
-	    if v.T == "str" {
-	        fmt.Printf("[73402] - At line %d - %s can't be both string and nil.\n", f.Line, v.Value)
-	        os.Exit(1)
-	    }
-	    v.T = "nil"
-	} else if util.IsBoolean(v.Value) {
-	    if v.T == "str" {
-	        fmt.Printf("[73402] - At line %d - %s can't be both string and bool.\n", f.Line, v.Value)
-	        os.Exit(1)
-	    }
-	    v.T = "bool"
-	} else if conditions.IsCondition(v.Value) {
-	    result := conditions.EvaluateConditions(v.Value)
-	    v.Value = fmt.Sprintf("%v", result)
-	    v.T = "bool"
+
+	if v.T != "str" && !inString {
+	    v.Value = strings.TrimSpace(v.Value)
+	    v.Value = resolvers.ReplaceVariablesInExpr(v.Value)
+
+ 	    if conditions.IsCondition(v.Value) {
+	        result := conditions.EvaluateConditions(v.Value)
+	        v.Value = fmt.Sprintf("%v", result)
+	        v.T = "bool"
+ 	    } else if util.LooksLikeCalcul(v.Value) {
+ 	        v.Value = resolvers.ResolveCalculs(v.Value)
+ 	        v.T = "int"
+ 	    } else if util.IsNumber(v.Value) {
+ 	        v.T = "int"
+ 	    } else if v.Value == "nil" {
+        	v.T = "nil"
+    	} else if util.IsBoolean(v.Value) {
+    	    v.T = "bool"
+    	}
 	}
-		if v.T == "str" && inString {
-	    fmt.Printf("[73402] - At line %d - %s is an opened string but never closed.\n", f.Line, v.Value)
-	    os.Exit(1)
+	if v.T == "str" {
+    	v.Value = conditions.ReplaceBracedVariablesInString(v.Value)
+    	if inString {
+    	    fmt.Printf("[73402] - At line %d - %s is an opened string but never closed.\n", f.Line, v.Value)
+    	    os.Exit(1)
+    	}
 	}
 	if v.T == "" {
 	    fmt.Printf("[73402] - At line %d - %s is not accorded to any working type (int/nil/bool/str).\n", f.Line, v.Value)

@@ -74,14 +74,7 @@ func Tokenise(t string) []types.Item {
             }
             current = ""
 
-        case "$":
-            if depth == 0 && current != "" {
-                if strings.TrimSpace(current) != "" {
-                    fmt.Printf("[73402] - At line %d - %s is useless and not complete.\n", line, current)
-                    os.Exit(1)
-                }
-            }
-            current += "$"
+        
 
         case ">":
             if depth == 0 && i > 0 && string(t[i-1]) == "-" {

@@ -1,5 +1,6 @@
 package util
 
+import "strings"
 
 // Verify if a char is a digit
 func IsDigit(v string) bool {
@@ -43,4 +44,8 @@ func Contains(t string, l []string) bool {
 		}
 	}
 	return false
+}
+
+func LooksLikeCalcul(s string) bool {
+    return strings.ContainsAny(s, "+-*/%^") && !strings.ContainsAny(s, "><=!")
 }

@@ -15,7 +15,7 @@ var depth []string = []string{}
 
 func ExecuteFunctions(items []types.Item) {
 	var i int = 0
-	for i < len(items)-1 {
+	for i < len(items) {
 		if items[i].Name != "" {
 			instanciedElement := InstancyFunction(items[i])
 			switch instanciedElement.Name {
