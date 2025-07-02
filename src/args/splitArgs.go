@@ -65,10 +65,12 @@ func Split(f types.Item) []types.Arg {
         			v.Value = strings.TrimSpace(v.Value)
     			}
 			}
-			value, t := resolvers.ResolveValue(v.Value)
-			v.Value = value
-			if t != "" {
-			    v.T = t
+			if v.T != "str" {
+    			value, t := resolvers.ResolveValue(v.Value)
+    			v.Value = value
+    			if t != "" {
+    			    v.T = t
+    			}
 			}
 
 			if v.T != "str" && !inString {
@@ -131,10 +133,12 @@ func Split(f types.Item) []types.Arg {
 	    r = r[:len(r)-1]
     	return r
 	}
-	value, t := resolvers.ResolveValue(v.Value)
-	v.Value = value
-	if t != "" {
-	    v.T = t
+	if v.T != "str" {
+    	value, t := resolvers.ResolveValue(v.Value)
+    	v.Value = value
+    	if t != "" {
+    	    v.T = t
+    	}
 	}
 
 	if v.T != "str" && !inString {

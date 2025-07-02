@@ -26,7 +26,7 @@ func SetVar_D() types.Function {
 			},
 			{
 				Name: "type",
-				T:    "any",
+				T:    "str",
 			},
 		},
 		Execute: SetVar,
@@ -36,7 +36,16 @@ func SetVar_D() types.Function {
 func SetVar(f *types.Function) any {
 	name := f.Args[0]
 	value := f.Args[1]
-	t := f.Args[2]
+	var t types.Arg
+	if len(f.Args) > 2 {
+	    t = f.Args[2]
+	} else {
+    	if vars.GetAvailableVariables()[name.Value].T != "" {
+    	    t = types.Arg{Value: vars.GetAvailableVariables()[name.Value].T}
+    	} else {
+    	    t = types.Arg{Value: "any"}
+    	}
+	}
 	if util.Contains(name.Value, registry.GetAvailableFunctionsNames()) {
 		fmt.Printf("[73402] - A function already exist with this name: %s.\n", name.Value)
 		os.Exit(1)

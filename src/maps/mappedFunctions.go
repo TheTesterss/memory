@@ -14,6 +14,7 @@ var functions map[string]types.Function = map[string]types.Function{
 	"end": bloc.End_D(),
 	"else": bloc.Else_D(),
 	"elseif": bloc.Elseif_D(),
+	"while": bloc.While_D(),
 }
 
 func GetAvailableFunctions() map[string]types.Function {

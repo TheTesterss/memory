@@ -11,116 +11,136 @@ import (
 
 var functions_D map[string]types.Function = maps.GetAvailableFunctions()
 var _ []string = registry.GetAvailableFunctionsNames()
-var depth []string = []string{}
 
 func ExecuteFunctions(items []types.Item) {
-	var i int = 0
-	for i < len(items) {
-		if items[i].Name != "" {
-			instanciedElement := InstancyFunction(items[i])
-			switch instanciedElement.Name {
-			
-			case "if":
-				depth = append(depth, "if")
-				if !conditions.IsCondition(instanciedElement.Args[0].Value) {
-					fmt.Printf("[73402] - At line %d - Can't open an if block if the condition is not valid.\n", items[i].Line)
-					os.Exit(1)
-				}
-				if(conditions.EvaluateConditions(instanciedElement.Args[0].Value)) {
-					i++
-                    for i < len(items) && !(items[i].Name == "elseif" || items[i].Name == "else" || items[i].Name == "end") {
-                        ExecuteFunction(i, InstancyFunction(items[i]), items)
-                        i++
-                    }
-					for i < len(items) && items[i].Name != "end" {
-                        i++
-                    }
-				} else {
-					found := false
-					for i < len(items) && items[i].Name != "end" {
-                        if items[i].Name == "elseif" {
-							instanciedElement2 := InstancyFunction(items[i])
-                            if !conditions.IsCondition(instanciedElement2.Args[0].Value) {
-                                fmt.Printf("[73402] - At line %d - Can't open an elseif block if the condition is not valid.\n", items[i].Line)
-                                os.Exit(1)
-                            }
-                            if conditions.EvaluateConditions(instanciedElement2.Args[0].Value) {
-    							found = true
-    							i++
-    							for i < len(items) && !(items[i].Name == "elseif" || items[i].Name == "else" || items[i].Name == "end") {
-        							ExecuteFunction(i, InstancyFunction(items[i]), items)
-        							i++
-    							}
-								for i < len(items) && items[i].Name != "end" {
-        							i++
-    							}
-    							break
-							}
-                        } else if items[i].Name == "else" {
-                            found = true
-                            i++
-                            for i < len(items) && items[i].Name != "end" {
-                                ExecuteFunction(i, InstancyFunction(items[i]), items)
-                                i++
-                            }
+    i := 0
+    for i < len(items) {
+        if items[i].Name != "" {
+            instanciedElement := InstancyFunction(items[i])
+            switch instanciedElement.Name {
+
+            case "if":
+                blockEnd := findMatchingEnd(items, i)
+                branchToExec := -1
+				
+                j := i
+                for j < blockEnd {
+                    if items[j].Name == "if" || items[j].Name == "elseif" {
+                        inst := InstancyFunction(items[j])
+                        if !conditions.IsCondition(inst.Args[0].Value) {
+                            fmt.Printf("[73402] - At line %d - Can't open a condition block if the condition is not valid.\n", items[j].Line)
+                            os.Exit(1)
+                        }
+                        if conditions.EvaluateConditions(inst.Args[0].Value) {
+                            branchToExec = j
                             break
                         }
-                        i++
+                    } else if items[j].Name == "else" {
+                        branchToExec = j
+                        break
                     }
-                    if !found {
-                        for i < len(items) && items[i].Name != "end" {
-                            i++
-                        }
-                    }
-				}
+                    j++
+                }
+                if branchToExec != -1 {
+    				k := branchToExec + 1
+    				for k < blockEnd && items[k].Name != "elseif" && items[k].Name != "else" && items[k].Name != "end" {
+        				inst := InstancyFunction(items[k])
+        				switch items[k].Name {
 
-				if len(depth) > 0 {
-                    depth = depth[:len(depth)-1]
+        				case "if", "while":
+        				    subBlockEnd := findMatchingEnd(items, k)
+        				    ExecuteFunctions(items[k : subBlockEnd+1])
+        				    k = subBlockEnd
+        				default:
+        				    ExecuteFunction(k, inst, items)
+        				}
+        				k++
+    				}
+				}
+                i = blockEnd
+
+            case "while":
+                blockStart := i
+                blockEnd := findMatchingEnd(items, i)
+                for {
+                    condItem := InstancyFunction(items[blockStart])
+                    if !conditions.IsCondition(condItem.Args[0].Value) {
+                        fmt.Printf("[73402] - At line %d - Can't open a while block if the condition is not valid.\n", items[blockStart].Line)
+                        os.Exit(1)
+                    }
+                    if !conditions.EvaluateConditions(condItem.Args[0].Value) {
+                        break
+                    }
+                    k := blockStart + 1
+					for k < blockEnd && items[k].Name != "end" {
+    					inst := InstancyFunction(items[k])
+    					switch items[k].Name {
+    					
+						case "if", "while":
+        					subBlockEnd := findMatchingEnd(items, k)
+        					ExecuteFunctions(items[k : subBlockEnd+1])
+        					k = subBlockEnd
+    					default:
+        					ExecuteFunction(k, inst, items)
+    					}
+    					k++
+					}
                 }
-			case "elseif", "else":
-				for i < len(items) && items[i].Name != "end" {
-                    i++
-                }
-			case "while":
-				depth = append(depth, "while")
-			case "end":
-				if len(depth) > 0 {
-                    depth = depth[:len(depth)-1]
-                } else {
-                    fmt.Printf("[73402] - At line %d - Can't end block because no block opened found.\n", items[i].Line)
-                    os.Exit(1)
-                }
-			case "func":
-				depth = append(depth, "func")
-			default:
-				ExecuteFunction(i, instanciedElement, items)
-			}
-		}
-		i++
-	}
+                i = blockEnd
+            default:
+                ExecuteFunction(i, instanciedElement, items)
+            }
+        }
+        i++
+    }
 }
 
 func ExecuteFunction(i int, function types.Function, items []types.Item) {
-	if function.ArgsCount < functions_D[function.Name].ArgsCount && functions_D[function.Name].ArgsCount != -1 {
+	required := int(functions_D[function.Name].ArgsCount)
+	given := int(function.ArgsCount)
+	argsDef := functions_D[function.Name].Args
+
+	if required > 0 && given < required {
 			fmt.Printf("[73402] - At line %d - %s doesn't count as much arguments as required (demanded = %.0f/gave = %.0f).\n", items[i].Line, function.Name, function.ArgsCount, functions_D[function.Name].ArgsCount)
 			os.Exit(1)
 	}
 
-	if functions_D[function.Name].ArgsCount != -1 {
-		for j, arg := range function.Args {
-			if arg.T != functions_D[function.Name].Args[j].T && functions_D[function.Name].Args[j].T != "any" {
-				fmt.Printf("[73402] - At line %d - %s can't match different types (demanded = %s/gave = %s).\n", items[i].Line, function.Name, arg.T, functions_D[function.Name].Args[j].T)
-				os.Exit(1)
-			}
-		}
-	} else if functions_D[function.Name].ArgsCount > 0 {
-		for _, arg := range function.Args {
-			if arg.T != functions_D[function.Name].Args[0].T && functions_D[function.Name].Args[0].T != "any" {
-				fmt.Printf("[73402] - At line %d - %s can't match different types (demanded = %s/gave = %s).\n", items[i].Line, function.Name, arg.T, functions_D[function.Name].Args[0].T)
-				os.Exit(1)
-			}
-		}
+	for j := 0; j < required && j < given && j < len(argsDef); j++ {
+    	expectedType := argsDef[j].T
+    	givenType := function.Args[j].T
+    	if expectedType != "any" && expectedType != givenType {
+        	fmt.Printf("[73402] - At line %d - %s can't match different types (demanded = %s/gave = %s).\n", items[i].Line, function.Name, expectedType, givenType)
+        	os.Exit(1)
+    	}
 	}
+	
+	if required == -1 && len(argsDef) > 0 {
+        expectedType := argsDef[0].T
+        for j := 0; j < given; j++ {
+            givenType := function.Args[j].T
+            if expectedType != "any" && expectedType != givenType {
+                fmt.Printf("[73402] - At line %d - %s can't match different types (demanded = %s/gave = %s).\n", items[i].Line, function.Name, expectedType, givenType)
+                os.Exit(1)
+            }
+        }
+    }
 
 	functions_D[function.Name].Execute(&function)
+}
+
+func findMatchingEnd(items []types.Item, pos int) int {
+    depth := 0
+    for i := pos; i < len(items); i++ {
+        if items[i].Name == "if" || items[i].Name == "while" {
+            depth++
+        } else if items[i].Name == "end" {
+            depth--
+            if depth == 0 {
+                return i
+            }
+        }
+    }
+    fmt.Printf("[73402] - No matching end found for block at %d\n", pos)
+    os.Exit(1)
+    return -1
 }

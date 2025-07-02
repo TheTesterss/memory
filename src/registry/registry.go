@@ -7,6 +7,7 @@ var FunctionNames []string = []string{
 	"end",
 	"elseif",
 	"else",
+	"while",
 }
 
 var VariableNames []string = []string{}

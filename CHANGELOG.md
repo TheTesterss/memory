@@ -1,4 +1,10 @@
 2025-07-02
+V0.7.0
++ Added while blocks
++ Corrected updates made on variables
++ Corrected blocks in blocks
+&&&&&&
+2025-07-02
 V0.6.5
 + Added escapes in string for conditions, calculs and variables.
 + Added calculs
