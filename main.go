@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	content, err := os.ReadFile("test.tev");
+	content, err := os.ReadFile("test.ru");
 	if err != nil {
 		fmt.Println("error while opening file");
 		os.Exit(1);

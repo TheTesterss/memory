@@ -1,5 +1,9 @@
 2025-07-02
 V0.7.0
++ Corrected operands not always resolved
+&&&&&&
+2025-07-02
+V0.7.0
 + Added while blocks
 + Corrected updates made on variables
 + Corrected blocks in blocks

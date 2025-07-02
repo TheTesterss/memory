@@ -37,6 +37,7 @@ func ReplaceBracedVariablesInString(s string) string {
 						b := EvaluateConditions(trimmed)
 						result.WriteString(fmt.Sprintf("%v", b))
 					} else if util.LooksLikeCalcul(trimmed) || util.IsNumber(trimmed) {
+						trimmed = resolvers.ReplaceVariablesInExpr(trimmed)
 						result.WriteString(resolvers.ResolveCalculs(trimmed))
 					} else {
 						result.WriteString("{" + name + "}")
