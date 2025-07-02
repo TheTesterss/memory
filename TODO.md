@@ -15,5 +15,10 @@ Remove brackets unnecessary for end and else blocks.
 next_major_update
 major
 Adding while
-Adding variable escape in string
 Adding custom functions
+&&&&&&
+2025-07-02
+next_update
+added
+Adding escapes in string
+Adding calculations
